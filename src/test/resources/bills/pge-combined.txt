@@ -1,0 +1,27 @@
+PG&E
+ENERGY STATEMENT                                  www.pge.com/MyEnergy
+Account No: 1234567890-5                          Statement Date: 01/12/2026
+                                                  Due Date: 02/02/2026
+Your Account Summary
+Amount Due on Previous Statement                    $188.40
+Payment(s) Received Since Last Statement           -188.40
+Current PG&E Electric Delivery Charges               $71.06
+Current PG&E Gas Charges                            $112.53
+Total Amount Due                                    $183.59
+
+Details of PG&E Electric Delivery Charges
+12/09/2025 - 01/08/2026 (31 billing days)
+Rate Schedule: E1 X Residential Service
+Total Usage                                       388.000000 kWh
+Generation Charges                                   $41.12
+Delivery Charges                                     $25.31
+Utility Users' Tax                                    $4.63
+Total PG&E Electric Delivery Charges                 $71.06
+
+Details of PG&E Gas Charges
+12/09/2025 - 01/08/2026 (31 billing days)
+Total Usage                                        61.000000 Therms
+Gas Procurement Charges                              $38.22
+Gas Delivery Charges                                 $66.55
+Public Purpose Programs                               $7.76
+Total PG&E Gas Charges                              $112.53

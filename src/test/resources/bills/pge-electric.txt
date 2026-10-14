@@ -1,0 +1,22 @@
+PG&E
+Pacific Gas and Electric Company
+ENERGY STATEMENT                                  www.pge.com/MyEnergy
+
+Account No: 1234567890-5                          Statement Date: 09/03/2026
+Service For: JORDAN LEE                           Due Date: 09/24/2026
+123 MAIN ST APT 4
+SAN FRANCISCO, CA 94110
+
+Your Account Summary
+Amount Due on Previous Statement                    $142.88
+Payment(s) Received Since Last Statement           -142.88
+Previous Unpaid Balance                               $0.00
+Current PG&E Electric Delivery Charges               $61.22
+Clean Power SF Electric Generation Charges           $37.40
+Total Current Charges                                $98.62
+Total Amount Due                                     $98.62
+
+Service Information
+Billing Period: 07/31/2026 - 08/29/2026 (30 billing days)
+Total Usage                                          412.000000 kWh
+Rate Schedule: E1 X Residential Service

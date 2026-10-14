@@ -1,0 +1,14 @@
+SoCalGas
+Southern California Gas Company
+Account Number 097 123 4567 8
+Date Mailed Jan 12, 2026
+Gas Usage History
+Service From 12/09/25 To 01/08/26
+Total Therms Used 54 Therms
+Gas Charges
+Customer Charge                                   $5.00
+Gas Transmission Charge                          $48.17
+Gas Commodity Charge                             $36.51
+Total Gas Charges                                $89.68
+Amount Due $89.68
+Payment Due Date 02/02/26

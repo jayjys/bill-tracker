@@ -1,0 +1,11 @@
+Con Edison
+Your billing summary
+Account number: 50-1234-5678-0001-7
+Billing period: Aug 5, 2026 to Sep 3, 2026
+Balance from last bill            $88.10
+Late payment charge                 $1.32
+New charges                       $121.45
+Total amount due                  $210.87
+Please pay by Sep 24, 2026
+Electricity usage: you used 538 kWh this period
+Gas usage: 14 therms
