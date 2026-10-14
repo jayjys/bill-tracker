@@ -1,0 +1,27 @@
+# Render Blueprint: New → Blueprint → pick this repo. Creates the web service and a Postgres database.
+services:
+  - type: web
+    name: bill-tracker
+    runtime: docker
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DB_HOST
+        fromDatabase: { name: bill-tracker-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: bill-tracker-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: bill-tracker-db, property: database }
+      - key: DATABASE_USERNAME
+        fromDatabase: { name: bill-tracker-db, property: user }
+      - key: DATABASE_PASSWORD
+        fromDatabase: { name: bill-tracker-db, property: password }
+      - key: INBOUND_EMAIL_SECRET
+        generateValue: true
+      - key: INBOUND_EMAIL_DOMAIN
+        sync: false
+
+databases:
+  - name: bill-tracker-db
+    plan: free
+    databaseName: billtracker
