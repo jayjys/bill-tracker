@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('dashboard')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${household.name}">Our apartment</h1>
+            <p class="muted">
+                <span th:text="${household.occupants == 1} ? '1 person' : ${household.occupants} + ' people'">2 people</span>
+                <span th:if="${memberCount > 1}" th:text="${'· ' + memberCount + ' members sharing bills'}"></span>
+                <span th:if="${household.city}" th:text="${'· ' + household.city}"></span>
+                <span th:unless="${report.empty}">· last 12 months through
+                    <span th:text="${#temporals.format(report.summary.latestMonthStart, 'MMMM yyyy')}">Sep 2026</span></span>
+            </p>
+        </div>
+        <div class="actions">
+            <a class="btn" th:href="@{/bills/new}">Add manually</a>
+            <a class="btn btn-primary" th:href="@{/upload}">Upload bills</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div th:if="${needsReview > 0}" class="alert alert-warn">
+        <span th:text="${needsReview == 1} ? '1 bill needs' : ${needsReview} + ' bills need'">2 bills need</span>
+        a quick review — some fields couldn't be read or didn't add up.
+        <a th:href="@{/bills}">Review now</a>
+    </div>
+
+    <!-- Alerts from anomaly detection; routine due-date reminders are collapsed to one line -->
+    <p th:unless="${dueSoon.empty}" class="due-line small">
+        <strong th:text="${dueSoon.size() == 1 ? '1 bill' : dueSoon.size() + ' bills'}">2 bills</strong> due soon:
+        <span th:each="d, it : ${dueSoon}"><a th:href="@{/bills/{id}(id=${d.billId})}"
+            th:text="${d.title}">ComEd due Oct 11</a><span th:unless="${it.last}"> · </span></span>
+    </p>
+    <section th:unless="${alerts.empty}" class="alert-list">
+        <a th:each="a : ${alerts}" class="alert-item" th:classappend="'sev-' + ${a.severity}"
+           th:href="@{/bills/{id}(id=${a.billId})}">
+            <strong th:text="${a.title}">Possible leak</strong>
+            <span class="small" th:text="${a.detail}">Used 250 gallons/day vs 140 expected.</span>
+        </a>
+        <a class="small" th:href="@{/insights#alerts}">All alerts →</a>
+    </section>
+
+    <!-- Empty state -->
+    <div th:if="${report.empty}" class="card empty">
+        <h2>No bills yet</h2>
+        <p class="muted">Upload a PDF bill, or forward bill emails to your personal address:</p>
+        <p><code th:text="${forwardingAddress}">bills+abc@inbound.example.com</code></p>
+        <div class="actions center">
+            <a class="btn btn-primary" th:href="@{/upload}">Upload your first bill</a>
+            <a class="btn" th:href="@{/household}">Invite roommates</a>
+        </div>
+    </div>
+
+    <th:block th:unless="${report.empty}" th:with="s=${report.summary}">
+        <section class="stats">
+            <div class="card stat">
+                <div class="stat-label" th:text="${#temporals.format(s.latestMonthStart, 'MMMM')}">September</div>
+                <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(s.latestMonthTotal, 1, 'COMMA', 2, 'POINT')}">$0</div>
+                <div class="stat-delta" th:if="${s.monthOverMonthPct != null}"
+                     th:classappend="${s.monthOverMonthPct.signum() > 0} ? 'delta-up' : 'delta-down'"
+                     th:text="${(s.monthOverMonthPct.signum() > 0 ? '▲ ' : '▼ ') + s.monthOverMonthPct.abs() + '% vs last month'}">▲ 4%</div>
+                <div class="stat-delta muted" th:if="${s.monthOverMonthPct == null}">No prior month to compare</div>
+            </div>
+            <div class="card stat stat-forecast">
+                <div class="stat-label">Next month · forecast</div>
+                <th:block th:unless="${forecast.empty}">
+                    <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(forecast.total, 1, 'COMMA', 0, 'POINT')}">$310</div>
+                    <div class="stat-delta muted">
+                        <span th:text="${'$' + #numbers.formatDecimal(forecast.low, 1, 'COMMA', 0, 'POINT') + '–$' + #numbers.formatDecimal(forecast.high, 1, 'COMMA', 0, 'POINT')}">$280–$340</span>
+                        <span th:text="${forecast.weatherAvailable} ? '· weather-adjusted' : ''"></span>
+                    </div>
+                </th:block>
+                <th:block th:if="${forecast.empty}">
+                    <div class="stat-value muted">—</div>
+                    <div class="stat-delta muted">Needs 3+ bills per utility</div>
+                </th:block>
+            </div>
+            <div class="card stat">
+                <div class="stat-label">Per person / month</div>
+                <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(s.perPersonMonthly, 1, 'COMMA', 2, 'POINT')}">$150</div>
+                <div class="stat-delta muted"
+                     th:text="${'$' + #numbers.formatDecimal(s.costPerDay, 1, 'COMMA', 2, 'POINT') + '/day for the household'}">$10/day</div>
+            </div>
+            <div class="card stat">
+                <div class="stat-label">vs. a year ago</div>
+                <th:block th:if="${s.yearOverYearPct != null}">
+                    <div class="stat-value" th:classappend="${s.yearOverYearPct.signum() > 0} ? 'delta-up' : 'delta-down'"
+                         th:text="${(s.yearOverYearPct.signum() > 0 ? '+' : '') + s.yearOverYearPct + '%'}">+3%</div>
+                    <div class="stat-delta muted" th:text="${'$' + #numbers.formatDecimal(s.sameMonthLastYearTotal, 1, 'COMMA', 2, 'POINT') + ' last year'}"></div>
+                </th:block>
+                <th:block th:if="${s.yearOverYearPct == null}">
+                    <div class="stat-value muted">—</div>
+                    <div class="stat-delta muted">Needs a bill from last year</div>
+                </th:block>
+            </div>
+        </section>
+
+        <div class="grid grid-2">
+            <section class="card">
+                <h2>Monthly cost by utility</h2>
+                <div class="chart-wrap">
+                    <canvas id="trendChart" role="img" aria-label="Stacked bar chart of monthly utility costs"></canvas>
+                </div>
+            </section>
+            <section class="card">
+                <h2>By utility</h2>
+                <table class="table">
+                    <thead>
+                    <tr><th>Utility</th><th class="right">Avg / mo</th><th class="right">Unit cost</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="t : ${report.byType}">
+                        <td>
+                            <span class="dot" th:classappend="'type-' + ${t.type}"></span><span th:text="${t.label}">Electric</span>
+                            <div class="muted small" th:if="${t.usagePerPersonPerDay != null}"
+                                 th:text="${t.usagePerPersonPerDay + ' ' + t.usageUnit + '/person/day'}">9.8 kWh/person/day</div>
+                        </td>
+                        <td class="right num" th:text="${'$' + #numbers.formatDecimal(t.monthlyAverage, 1, 'COMMA', 2, 'POINT')}">$0</td>
+                        <td class="right num">
+                            <span th:if="${t.averageUnitCost != null}"
+                                  th:text="${'$' + #numbers.formatDecimal(t.averageUnitCost, 1, 'COMMA', 3, 'POINT') + '/' + t.usageUnit}">$0.21/kWh</span>
+                            <span th:if="${t.averageUnitCost == null}" class="muted">—</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p class="small"><a th:href="@{/insights}">Forecast details &amp; SQL insights →</a></p>
+            </section>
+        </div>
+
+        <section class="card">
+            <div class="page-head">
+                <h2>Recent bills</h2>
+                <a th:href="@{/bills}" class="small">All bills →</a>
+            </div>
+            <div th:replace="~{fragments/bill-table :: table(${recent})}"></div>
+        </section>
+    </th:block>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/chart.umd.min.js}"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

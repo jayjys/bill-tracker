@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Upload bills')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('upload')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <h1>Upload bills</h1>
+            <p class="muted">PDF bills, saved emails (.eml), or text/HTML files. You can select several at once.</p>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section class="card" th:if="${outcomes != null}">
+        <h2>Results</h2>
+        <p th:if="${outcomes.empty}" class="muted">No files were selected.</p>
+        <table class="table" th:unless="${outcomes.empty}">
+            <thead><tr><th>File</th><th>Result</th><th>Details</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="o : ${outcomes}">
+                <td th:text="${o.name}">bill.pdf</td>
+                <td><span class="badge" th:classappend="'badge-' + ${o.result}"
+                          th:text="${#strings.capitalize(#strings.toLowerCase(o.result.name()))}">Created</span></td>
+                <td>
+                    <span th:text="${o.message}"></span>
+                    <span th:if="${o.bill != null and o.bill.amount != null}" class="num"
+                          th:text="${' · $' + #numbers.formatDecimal(o.bill.amount, 1, 'COMMA', 2, 'POINT')}"></span>
+                </td>
+                <td class="right"><a th:if="${o.bill != null}" th:href="@{/bills/{id}(id=${o.bill.id})}">Review</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <form th:action="@{/upload}" method="post" enctype="multipart/form-data" class="form">
+            <div class="dropzone" id="dropzone">
+                <strong>Drop bill files here</strong>
+                <div class="muted small">or choose them — PDF, EML, TXT, HTML · up to 10 MB each</div>
+                <input type="file" name="files" id="files" multiple
+                       accept=".pdf,.eml,.txt,.html,.htm,application/pdf,message/rfc822,text/plain,text/html">
+            </div>
+            <div><button type="submit" class="btn btn-primary">Upload and read</button></div>
+        </form>
+    </section>
+    <p class="muted small">
+        Tip: you can skip uploading entirely by forwarding bill emails — see <a th:href="@{/settings}">Forwarding</a>.
+    </p>
+</main>
+<script th:src="@{/js/upload.js}"></script>
+</body>
+</html>

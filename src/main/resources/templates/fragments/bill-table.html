@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="table(rows)" class="table-scroll">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Statement</th>
+            <th>Provider</th>
+            <th>Utility</th>
+            <th class="right">Usage</th>
+            <th class="right">Amount</th>
+            <th class="right">Per day</th>
+            <th>Added by</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="b : ${rows}">
+            <td class="num"><a class="row-link" th:href="@{/bills/{id}(id=${b.id})}"
+                               th:text="${#temporals.format(b.statementDate, 'MMM d, yyyy')}">Sep 30, 2026</a></td>
+            <td th:text="${b.provider ?: '—'}">PG&amp;E</td>
+            <td><span class="dot" th:classappend="'type-' + ${b.utilityType}"></span><span th:text="${b.utilityType.label()}">Electric</span></td>
+            <td class="right num" th:text="${b.usageQuantity != null} ? ${#numbers.formatDecimal(b.usageQuantity, 1, 'COMMA', 0, 'POINT') + ' ' + b.usageUnit} : '—'">512 kWh</td>
+            <td class="right num" th:text="${b.amount != null} ? ${'$' + #numbers.formatDecimal(b.amount, 1, 'COMMA', 2, 'POINT')} : '—'">$84.12</td>
+            <td class="right num muted" th:text="${b.costPerDay != null} ? ${'$' + #numbers.formatDecimal(b.costPerDay, 1, 'COMMA', 2, 'POINT')} : '—'">$2.80</td>
+            <td class="muted small" th:text="${b.uploadedBy.shortName}">Jordan</td>
+            <td><span class="badge" th:classappend="'badge-' + ${b.status}"
+                      th:text="${b.status.name() == 'NEEDS_REVIEW'} ? 'Needs review' : ${#strings.capitalize(#strings.toLowerCase(b.status.name()))}">Parsed</span></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

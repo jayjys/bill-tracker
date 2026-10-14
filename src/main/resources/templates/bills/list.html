@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Bills')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('bills')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <h1>Bills</h1>
+            <p class="muted">Click a bill to check or correct what was read from it.</p>
+        </div>
+        <div class="actions">
+            <a class="btn" th:href="@{/bills/export.csv}">Export CSV</a>
+            <a class="btn" th:href="@{/bills/new}">Add manually</a>
+            <a class="btn btn-primary" th:href="@{/upload}">Upload</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <nav class="filters" aria-label="Filter by utility">
+        <a class="chip" th:href="@{/bills}" th:classappend="${selectedType == null} ? 'active'">All</a>
+        <a class="chip" th:each="t : ${utilityTypes}" th:href="@{/bills(type=${t})}"
+           th:classappend="${selectedType == t} ? 'active'" th:text="${t.label()}">Electric</a>
+    </nav>
+
+    <section class="card">
+        <div th:if="${bills.empty}" class="empty">
+            <h2>Nothing here yet</h2>
+            <p class="muted">Upload a bill or forward one by email to get started.</p>
+        </div>
+        <th:block th:unless="${bills.empty}">
+            <div th:replace="~{fragments/bill-table :: table(${bills})}"></div>
+        </th:block>
+    </section>
+</main>
+
+</body>
+</html>

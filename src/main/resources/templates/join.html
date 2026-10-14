@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Join household')}"></head>
+<body>
+<main>
+    <section class="card empty" th:if="${invalid}">
+        <h2>This invite link doesn't work</h2>
+        <p class="muted">It may have been replaced. Ask your roommate for a new one.</p>
+        <a class="btn" th:href="@{/}">Go to dashboard</a>
+    </section>
+    <section class="card empty" th:unless="${invalid}">
+        <h2 th:text="${'Join ' + target.name + '?'}">Join our apartment?</h2>
+        <p class="muted">You'll share bills, trends and alerts with its members. If you're the only member of your
+            current household, your bills come with you.</p>
+        <form th:action="@{/join/{code}(code=${code})}" method="post" class="actions center">
+            <button type="submit" class="btn btn-primary">Join household</button>
+            <a class="btn" th:href="@{/}">Cancel</a>
+        </form>
+    </section>
+</main>
+</body>
+</html>

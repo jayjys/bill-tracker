@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Insights')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('insights')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <h1>Insights</h1>
+            <p class="muted">Forecasts, unusual bills, and answers to common questions — computed from your household's bills
+                <span th:if="${household.city}" th:text="${'and ' + household.city + ' weather'}"></span>.</p>
+        </div>
+        <nav class="actions small">
+            <a href="#forecast">Forecast</a><a href="#alerts">Alerts</a><a href="#benchmarks">Benchmarks</a><a href="#sql">SQL</a>
+        </nav>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div th:unless="${household.city}" class="alert alert-warn">
+        Add your city on the <a th:href="@{/household}">Household</a> page to get weather-adjusted forecasts and anomaly detection.
+    </div>
+
+    <!-- ===================== Forecast ===================== -->
+    <section class="card" id="forecast">
+        <div class="page-head">
+            <div>
+                <h2>Next bill forecast</h2>
+                <p class="muted small" th:unless="${forecast.empty}">
+                    Expected total <strong th:text="${'$' + #numbers.formatDecimal(forecast.total, 1, 'COMMA', 2, 'POINT')}">$300</strong>
+                    (80% range <span th:text="${'$' + #numbers.formatDecimal(forecast.low, 1, 'COMMA', 0, 'POINT') + '–$' + #numbers.formatDecimal(forecast.high, 1, 'COMMA', 0, 'POINT')}"></span>),
+                    <span th:text="${'$' + #numbers.formatDecimal(forecast.perPerson, 1, 'COMMA', 2, 'POINT')}">$150</span> per person.
+                </p>
+            </div>
+        </div>
+        <p th:if="${forecast.empty}" class="muted">Forecasts need at least three bills for a utility.</p>
+        <div class="table-scroll" th:unless="${forecast.empty}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Account</th>
+                    <th>Period</th>
+                    <th class="right">Usage</th>
+                    <th class="right">Forecast</th>
+                    <th class="right">80% range</th>
+                    <th>Model</th>
+                    <th class="right" title="Mean absolute % error predicting past bills from earlier ones">Backtest error</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="f : ${forecast.accounts}">
+                    <td><span class="dot" th:classappend="'type-' + ${f.utilityType}"></span><span th:text="${f.label}">ComEd electric</span></td>
+                    <td class="num small" th:text="${#temporals.format(f.periodStart, 'MMM d') + ' – ' + #temporals.format(f.periodEnd, 'MMM d')}">Oct 21 – Nov 20</td>
+                    <td class="right num" th:text="${f.predictedUsage != null} ? ${#numbers.formatDecimal(f.predictedUsage, 1, 'COMMA', 0, 'POINT') + ' ' + f.usageUnit} : '—'">520 kWh</td>
+                    <td class="right num"><strong th:text="${'$' + #numbers.formatDecimal(f.predictedAmount, 1, 'COMMA', 2, 'POINT')}">$92.10</strong></td>
+                    <td class="right num muted" th:text="${'$' + #numbers.formatDecimal(f.low, 1, 'COMMA', 0, 'POINT') + '–$' + #numbers.formatDecimal(f.high, 1, 'COMMA', 0, 'POINT')}">$80–$104</td>
+                    <td class="small">
+                        <span th:text="${f.method}">Weather regression</span>
+                        <span class="muted" th:if="${f.r2 != null}" th:text="${'· R² ' + #numbers.formatDecimal(f.r2, 1, 2)}"></span>
+                        <div class="muted" th:text="${f.explanation}"></div>
+                    </td>
+                    <td class="right num small">
+                        <th:block th:if="${f.backtestMape != null}">
+                            <span th:text="${#numbers.formatDecimal(f.backtestMape, 1, 1) + '%'}"
+                                  th:classappend="${f.beatsNaive()} ? 'delta-down' : ''">6.2%</span>
+                            <div class="muted" th:text="${'naive ' + #numbers.formatDecimal(f.naiveMape, 1, 1) + '% · ' + f.backtestBills + ' bills'}">naive 14%</div>
+                        </th:block>
+                        <span th:if="${f.backtestMape == null}" class="muted">—</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="muted small" th:if="${!forecast.skipped.empty}" th:text="${'Not enough history yet: ' + #strings.listJoin(forecast.skipped, ', ')}"></p>
+        <details class="small">
+            <summary>How the forecast works</summary>
+            <p>Usage per day is modelled as <code>a + b·HDD + c·CDD</code>, where heating/cooling degree days measure how
+                far each day's mean temperature was below/above 18.3 °C (65 °F). It's fitted with ridge regression on your past
+                bills and the daily weather for your city (Open-Meteo / ERA5). For the next period, the weather is taken as the
+                average of the same dates over the previous three years. Cost is then <code>fixed + rate·usage</code>, fitted
+                on your recent bills, so fixed monthly charges aren't mistaken for usage. With fewer than 6 weather-matched
+                bills, the model falls back to the median of recent bills.</p>
+            <p><strong>Backtest error</strong> is the mean absolute percentage error when each of the last few bills is
+                predicted using only earlier bills (and the weather that actually happened), compared with the naive guess
+                "same cost per day as the last bill". Green means the model beats naive.</p>
+        </details>
+    </section>
+
+    <!-- ===================== Alerts ===================== -->
+    <section class="card" id="alerts">
+        <h2>Alerts</h2>
+        <p th:if="${alerts.empty}" class="muted">Nothing unusual. Bills are checked as they arrive and again every night.</p>
+        <div th:each="a : ${alerts}" class="alert-row" th:classappend="'sev-' + ${a.severity}">
+            <div>
+                <strong th:text="${a.title}">Possible leak</strong>
+                <span class="badge" th:text="${#strings.replace(#strings.toLowerCase(a.kind.name()), '_', ' ')}">possible leak</span>
+                <div class="small" th:text="${a.detail}"></div>
+                <div class="muted small">
+                    <a th:href="@{/bills/{id}(id=${a.billId})}">View bill</a>
+                    · <span th:text="${#temporals.format(a.createdDate, 'MMM d, yyyy')}"></span>
+                </div>
+            </div>
+            <form th:action="@{/alerts/{id}/dismiss(id=${a.id})}" method="post">
+                <button type="submit" class="btn-link small">Dismiss</button>
+            </form>
+        </div>
+        <details class="small">
+            <summary>How anomalies are detected</summary>
+            <p>For each bill, a model is fitted on <em>earlier</em> bills only and predicts usage per day for that period's
+                weather. The gap is scored with a robust z-score, (actual − expected) / (1.4826 × MAD of past residuals).
+                A bill is flagged when z ≥ 3.5 <em>and</em> usage is at least 25% above expected, so small, statistically
+                odd wobbles don't raise alarms. Water spikes are labelled as possible leaks. A price-per-unit jump of 20%+
+                with normal usage is reported as a rate increase.</p>
+        </details>
+    </section>
+
+    <!-- ===================== Benchmarks ===================== -->
+    <section class="card" id="benchmarks" th:unless="${report.empty}">
+        <h2>Usage per person</h2>
+        <p class="muted small" th:text="${'Normalised by service days and ' + household.occupants + (household.occupants == 1 ? ' person' : ' people') + ' (change on the Household page).'}"></p>
+        <table class="table">
+            <thead><tr><th>Utility</th><th class="right">Yours</th><th class="right">Typical US</th><th>Source</th></tr></thead>
+            <tbody>
+            <tr th:each="t : ${report.byType}" th:if="${t.usagePerPersonPerDay != null}">
+                <td><span class="dot" th:classappend="'type-' + ${t.type}"></span><span th:text="${t.label}"></span></td>
+                <td class="right num" th:text="${t.usagePerPersonPerDay + ' ' + t.usageUnit + '/day'}">9.8 kWh/day</td>
+                <td class="right num muted" th:switch="${t.type.name() + ':' + t.usageUnit}">
+                    <span th:case="'ELECTRIC:kWh'">≈ 12 kWh/day</span>
+                    <span th:case="'WATER:gallons'">≈ 82 gallons/day</span>
+                    <span th:case="*">—</span>
+                </td>
+                <td class="muted small" th:switch="${t.type.name()}">
+                    <span th:case="'ELECTRIC'">EIA RECS: ~10,500 kWh/yr per home, ~2.5 people</span>
+                    <span th:case="'WATER'">EPA WaterSense indoor + outdoor average</span>
+                    <span th:case="*"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ===================== SQL ===================== -->
+    <section id="sql">
+        <div class="page-head">
+            <div>
+                <h2>Questions answered in SQL</h2>
+                <p class="muted small">Each answer is a single query against the PostgreSQL schema; expand to see it.</p>
+            </div>
+        </div>
+        <article class="card" th:each="r : ${results}" th:id="${r.query.id}">
+            <h2 th:text="${r.query.title}">Title</h2>
+            <p class="muted small" th:text="${r.query.question}">Question</p>
+            <div th:if="${r.error}" class="alert alert-error small" th:text="${'Query failed: ' + r.error}"></div>
+            <p th:if="${r.error == null and r.rows.empty}" class="muted small">No rows yet.</p>
+            <div class="table-scroll" th:unless="${r.rows.empty}">
+                <table class="table table-compact">
+                    <thead><tr><th th:each="c : ${r.columns}" th:text="${@cells.header(c)}">col</th></tr></thead>
+                    <tbody>
+                    <tr th:each="row, it : ${r.rows}" th:if="${it.index < 24}">
+                        <td th:each="c : ${r.columns}" class="num" th:text="${@cells.format(row.get(c))}">v</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p class="muted small" th:if="${r.rows.size() > 24}" th:text="${'Showing 24 of ' + r.rows.size() + ' rows'}"></p>
+            </div>
+            <details>
+                <summary class="small">SQL</summary>
+                <pre class="sql" th:text="${r.query.sql}">SELECT 1</pre>
+            </details>
+        </article>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

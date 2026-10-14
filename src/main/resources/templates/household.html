@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Household')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('household')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${household.name}">Our apartment</h1>
+            <p class="muted">Everyone in a household sees the same bills, trends and alerts.</p>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="grid grid-2">
+        <section class="card">
+            <h2>Settings</h2>
+            <form class="form" th:action="@{/household}" method="post">
+                <div>
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" th:value="${household.name}" maxlength="100" required>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="occupants">People living here</label>
+                        <input type="number" id="occupants" name="occupants" min="1" max="20" th:value="${household.occupants}" required>
+                        <div class="muted small">Used for per-person costs. Can include people without an account.</div>
+                    </div>
+                    <div>
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" th:value="${household.city}" placeholder="e.g. Chicago, IL">
+                        <div class="muted small">For weather-adjusted forecasts. Only the city name is sent to the weather service.</div>
+                    </div>
+                </div>
+                <div><button type="submit" class="btn btn-primary">Save</button></div>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Members</h2>
+            <table class="table">
+                <tbody>
+                <tr th:each="m : ${members}">
+                    <td>
+                        <strong th:text="${m.shortName}">Jordan</strong>
+                        <span class="muted small" th:if="${household.owner != null and household.owner.id == m.id}"> · owner</span>
+                        <span class="muted small" th:if="${m.id == user.id}"> · you</span>
+                        <div class="muted small" th:text="${m.email}">you@example.com</div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <h2 class="mt">Invite a roommate</h2>
+            <p class="muted small">Anyone with this link can join and see the household's bills.</p>
+            <div class="copy-field">
+                <input type="text" id="forwardingAddress" readonly th:value="${inviteLink}">
+                <button type="button" class="btn" id="copyAddress">Copy</button>
+            </div>
+            <div class="actions mt">
+                <form th:action="@{/household/invite}" method="post">
+                    <button type="submit" class="btn-link small">Replace link</button>
+                </form>
+                <form th:if="${members.size() > 1}" th:action="@{/household/leave}" method="post">
+                    <button type="submit" class="btn-link small">Leave household</button>
+                </form>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/settings.js}"></script>
+</body>
+</html>

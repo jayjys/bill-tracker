@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Forwarding')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('settings')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <h1>Forward bills by email</h1>
+            <p class="muted">Forward any bill email — or set up an auto-forward rule — to your private address.</p>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section class="card">
+        <h2>Your forwarding address</h2>
+        <div class="copy-field">
+            <input type="text" id="forwardingAddress" readonly th:value="${forwardingAddress}">
+            <button type="button" class="btn" id="copyAddress">Copy</button>
+        </div>
+        <p class="muted small">
+            PDF attachments become bills. If an email has no PDF, its body is read instead.
+        </p>
+        <form th:action="@{/settings/rotate-address}" method="post">
+            <button type="submit" class="btn-link small">Getting spam? Generate a new address</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Auto-forward from Gmail</h2>
+        <ol class="small">
+            <li>Gmail → Settings → <em>Forwarding and POP/IMAP</em> → add the address above.</li>
+            <li>Create a filter, e.g. <code>from:(pge.com OR coned.com OR xfinity.com)</code>.</li>
+            <li>Choose <em>Forward it to</em> your Bill Tracker address.</li>
+        </ol>
+    </section>
+
+    <section class="card">
+        <h2>Account</h2>
+        <p class="small">Signed in as <strong th:text="${user.email}">you@example.com</strong></p>
+    </section>
+</main>
+<script th:src="@{/js/settings.js}"></script>
+</body>
+</html>

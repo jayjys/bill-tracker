@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="fields">
+    <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
+        <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+    </div>
+    <div class="form-row">
+        <div th:classappend="${#fields.hasErrors('provider')} ? 'has-error'">
+            <label for="provider">Provider</label>
+            <input type="text" id="provider" th:field="*{provider}" placeholder="e.g. PG&amp;E">
+            <div class="field-error" th:errors="*{provider}"></div>
+        </div>
+        <div>
+            <label for="utilityType">Utility</label>
+            <select id="utilityType" th:field="*{utilityType}">
+                <option th:each="t : ${utilityTypes}" th:value="${t}" th:text="${t.label()}">Electric</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div th:classappend="${#fields.hasErrors('amount')} ? 'has-error'">
+            <label for="amount">Amount charged ($)</label>
+            <input type="number" step="0.01" id="amount" th:field="*{amount}" inputmode="decimal">
+            <div class="field-error" th:errors="*{amount}"></div>
+        </div>
+        <div th:classappend="${#fields.hasErrors('dueDate')} ? 'has-error'">
+            <label for="dueDate">Due date</label>
+            <input type="date" id="dueDate" th:field="*{dueDate}">
+            <div class="field-error" th:errors="*{dueDate}"></div>
+        </div>
+    </div>
+    <div class="form-row">
+        <div th:classappend="${#fields.hasErrors('periodStart')} ? 'has-error'">
+            <label for="periodStart">Service period start</label>
+            <input type="date" id="periodStart" th:field="*{periodStart}">
+        </div>
+        <div th:classappend="${#fields.hasErrors('periodEnd')} ? 'has-error'">
+            <label for="periodEnd">Service period end</label>
+            <input type="date" id="periodEnd" th:field="*{periodEnd}">
+        </div>
+    </div>
+    <div class="form-row">
+        <div th:classappend="${#fields.hasErrors('usageQuantity')} ? 'has-error'">
+            <label for="usageQuantity">Usage</label>
+            <input type="number" step="any" id="usageQuantity" th:field="*{usageQuantity}">
+            <div class="field-error" th:errors="*{usageQuantity}"></div>
+        </div>
+        <div>
+            <label for="usageUnit">Unit</label>
+            <input type="text" id="usageUnit" th:field="*{usageUnit}" placeholder="kWh, therms, gallons…" list="units">
+            <datalist id="units"><option>kWh</option><option>therms</option><option>CCF</option><option>HCF</option><option>gallons</option><option>GB</option></datalist>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('System status')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <h1>System status</h1>
+            <p class="muted">Background jobs run nightly: weather sync, anomaly scan, and re-reading bills when the parser improves.</p>
+        </div>
+        <form th:action="@{/system/refresh}" method="post">
+            <button type="submit" class="btn">Refresh my household now</button>
+        </form>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section class="card">
+        <h2>Your data</h2>
+        <p class="small">
+            Parser version <strong th:text="${parserVersion}">2</strong> ·
+            Weather:
+            <span th:if="${weatherFrom != null}" th:text="${household.city + ', ' + weatherFrom + ' to ' + weatherTo}"></span>
+            <span th:if="${weatherFrom == null}" class="muted">none yet<span th:unless="${household.city}"> — set a city on the Household page</span></span>
+        </p>
+    </section>
+
+    <section class="card">
+        <h2>Recent job runs</h2>
+        <p th:if="${runs.empty}" class="muted">No runs yet.</p>
+        <div class="table-scroll" th:unless="${runs.empty}">
+            <table class="table table-compact">
+                <thead><tr><th>Job</th><th>Started</th><th class="right">Took</th><th>Status</th><th class="right">Changed</th><th>Details</th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${runs}">
+                    <td th:text="${r.jobName}">weather-sync</td>
+                    <td class="num small" th:text="${@cells.format(r.startedAt)}"></td>
+                    <td class="right num small" th:text="${r.durationMillis != null} ? ${r.durationMillis + ' ms'} : '…'"></td>
+                    <td><span class="badge" th:classappend="'job-' + ${r.status}" th:text="${r.status}">OK</span></td>
+                    <td class="right num" th:text="${r.items ?: '—'}"></td>
+                    <td class="small muted" th:text="${r.message}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Edit bill')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('bills')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${bill.provider ?: 'Bill'}">PG&amp;E</h1>
+            <p class="muted small">
+                <span th:text="${bill.source.name() == 'EMAIL'} ? 'Forwarded by email' : (${bill.source.name() == 'UPLOAD'} ? 'Uploaded' : 'Entered manually')">Uploaded</span>
+                <span th:if="${bill.originalFilename}" th:text="${'· ' + bill.originalFilename}"></span>
+                <span th:if="${!#strings.isEmpty(bill.accountLast4)}" th:text="${'· account ••' + bill.accountLast4}"></span>
+                <span th:text="${'· added by ' + bill.uploadedBy.shortName}"></span>
+                · <span class="badge" th:classappend="'badge-' + ${bill.status}"
+                        th:text="${bill.status.name() == 'NEEDS_REVIEW'} ? 'Needs review' : ${#strings.capitalize(#strings.toLowerCase(bill.status.name()))}">Parsed</span>
+            </p>
+        </div>
+    </div>
+
+    <div th:if="${bill.status.name() == 'NEEDS_REVIEW'}" class="alert alert-warn">
+        Some details couldn't be read from this bill or didn't add up. Check the values and save to confirm.
+        <ul th:if="${bill.parseWarnings}" class="small">
+            <li th:each="w : ${#strings.arraySplit(bill.parseWarnings, ';')}" th:text="${#strings.trim(w)}"></li>
+        </ul>
+    </div>
+
+    <section class="stats stats-3" th:if="${bill.amount != null}">
+        <div class="card stat">
+            <div class="stat-label">Per day</div>
+            <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(bill.costPerDay, 1, 'COMMA', 2, 'POINT')}">$3.10</div>
+            <div class="stat-delta muted" th:text="${bill.effectiveDays + ' days of service'}">30 days</div>
+        </div>
+        <div class="card stat">
+            <div class="stat-label">Per person</div>
+            <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(bill.amountPerPerson, 1, 'COMMA', 2, 'POINT')}">$45</div>
+            <div class="stat-delta muted" th:text="${'split ' + bill.household.occupants + ' ways'}">split 2 ways</div>
+        </div>
+        <div class="card stat">
+            <div class="stat-label">Unit cost</div>
+            <div class="stat-value" th:text="${bill.unitCost != null} ? ${'$' + #numbers.formatDecimal(bill.unitCost, 1, 'COMMA', 3, 'POINT')} : '—'">$0.18</div>
+            <div class="stat-delta muted" th:text="${bill.usageUnit != null} ? ${'per ' + bill.usageUnit} : 'no usage on bill'">per kWh</div>
+        </div>
+    </section>
+
+    <section class="card">
+        <form class="form" th:action="@{/bills/{id}(id=${bill.id})}" th:object="${form}" method="post" novalidate>
+            <th:block th:replace="~{fragments/bill-form :: fields}"></th:block>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Save &amp; confirm</button>
+                <a class="btn" th:href="@{/bills}">Cancel</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="card" th:unless="${bill.charges.empty}">
+        <h2>Line items</h2>
+        <table class="table table-compact">
+            <thead><tr><th>Charge</th><th>Category</th><th class="right">Amount</th></tr></thead>
+            <tbody>
+            <tr th:each="c : ${bill.charges}">
+                <td th:text="${c.description}">Customer charge</td>
+                <td class="muted small" th:text="${c.category.label()}">Delivery</td>
+                <td class="right num" th:text="${'$' + #numbers.formatDecimal(c.amount, 1, 'COMMA', 2, 'POINT')}">$5.00</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <form th:action="@{/bills/{id}/delete(id=${bill.id})}" method="post" class="actions">
+            <button type="submit" class="btn btn-danger">Delete this bill</button>
+            <span class="muted small">This can't be undone.</span>
+        </form>
+    </section>
+
+    <section class="card" th:if="${bill.rawText}">
+        <details>
+            <summary>Text read from the original</summary>
+            <pre class="raw-text" th:text="${bill.rawText}"></pre>
+        </details>
+    </section>
+</main>
+</body>
+</html>

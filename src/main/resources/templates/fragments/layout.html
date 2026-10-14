@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' · Bill Tracker'">Bill Tracker</title>
+    <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<header th:fragment="nav(active)" class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" th:href="@{/}"><span class="brand-mark">$</span>Bill Tracker</a>
+        <nav class="nav">
+            <a th:href="@{/}" th:classappend="${active == 'dashboard'} ? 'active'">Dashboard</a>
+            <a th:href="@{/bills}" th:classappend="${active == 'bills'} ? 'active'">Bills</a>
+            <a th:href="@{/insights}" th:classappend="${active == 'insights'} ? 'active'">Insights</a>
+            <a th:href="@{/upload}" th:classappend="${active == 'upload'} ? 'active'">Upload</a>
+            <a th:href="@{/household}" th:classappend="${active == 'household'} ? 'active'">Household</a>
+            <a th:href="@{/settings}" th:classappend="${active == 'settings'} ? 'active'">Forwarding</a>
+        </nav>
+        <div class="nav-user">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn-link">Sign out</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<th:block th:fragment="flash">
+    <div th:if="${flash}" class="alert" role="status" th:text="${flash}">Saved.</div>
+    <div th:if="${error}" class="alert alert-error" role="alert" th:text="${error}">Problem.</div>
+</th:block>
+
+<footer th:fragment="footer" class="footer">
+    <a th:href="@{/system}">System status</a> · <a th:href="@{/api/bills}">API</a>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Not found')}"></head>
+<body>
+<main>
+    <section class="card empty">
+        <h2>Not found</h2>
+        <p class="muted">That page or bill doesn't exist.</p>
+        <a class="btn" th:href="@{/}">Back to dashboard</a>
+    </section>
+</main>
+</body>
+</html>
