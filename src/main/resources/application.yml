@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: bill-tracker
+  datasource:
+    # Either a full JDBC URL, or host/port/name parts (what Render and most PaaS hand out).
+    url: ${DATABASE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:billtracker}}
+    username: ${DATABASE_USERNAME:billtracker}
+    password: ${DATABASE_PASSWORD:billtracker}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 25MB
+  thymeleaf:
+    cache: true
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        same-site: lax
+        http-only: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+billtracker:
+  inbound:
+    # Domain your email provider routes to the inbound webhook, e.g. in.example.com.
+    # Users forward bills to bills+<token>@<domain>.
+    domain: ${INBOUND_EMAIL_DOMAIN:inbound.localhost}
+    # Shared secret the email provider must send (header X-Inbound-Secret or ?secret=).
+    secret: ${INBOUND_EMAIL_SECRET:change-me}
+  weather:
+    archive-url: https://archive-api.open-meteo.com/v1/archive
+    geocoding-url: https://geocoding-api.open-meteo.com/v1/search
+    timeout: 10s
+    max-attempts: 3
+    # Years of history fetched per location, used for seasonal normals.
+    history-years: 3
+  jobs:
+    enabled: ${JOBS_ENABLED:true}
+    weather-cron: "0 0 3 * * *"
+    analytics-cron: "0 30 3 * * *"
+    reparse-cron: "0 0 4 * * SUN"
+
+---
+# Run without Postgres/Docker:  ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:h2:file:./data/billtracker;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  thymeleaf:
+    cache: false
+billtracker:
+  inbound:
+    secret: local-dev-secret
