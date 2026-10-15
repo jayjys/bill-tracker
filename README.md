@@ -4,6 +4,8 @@ Upload utility bills or forward the emails your utilities send. Bill Tracker rea
 PostgreSQL, and shows where a household's money goes. It forecasts next month's bills from past usage and local
 weather, flags anomalies such as a likely water leak, and splits costs between roommates.
 
+**Live demo:** https://bill-tracker-8bsj.onrender.com (click **Try the demo**; the free server sleeps when idle, so the first load can take a minute)
+
 ![Dashboard](docs/dashboard.jpg)
 
 **Stack:** Java 21 · Spring Boot 4 (MVC, Security, Data JPA, scheduling) · PostgreSQL + Flyway · Thymeleaf + Chart.js ·
