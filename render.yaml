@@ -1,4 +1,6 @@
-# Render Blueprint: New → Blueprint → pick this repo. Creates the web service and a Postgres database.
+# Render Blueprint for the public demo: New → Blueprint → pick this repo.
+# Runs the `demo` profile: an in-memory database seeded with the demo household, reset on every restart,
+# so the free plan needs no Postgres. For a real deployment with PostgreSQL, see "Deploying" in the README.
 services:
   - type: web
     name: bill-tracker
@@ -6,22 +8,7 @@ services:
     plan: free
     healthCheckPath: /actuator/health
     envVars:
-      - key: DB_HOST
-        fromDatabase: { name: bill-tracker-db, property: host }
-      - key: DB_PORT
-        fromDatabase: { name: bill-tracker-db, property: port }
-      - key: DB_NAME
-        fromDatabase: { name: bill-tracker-db, property: database }
-      - key: DATABASE_USERNAME
-        fromDatabase: { name: bill-tracker-db, property: user }
-      - key: DATABASE_PASSWORD
-        fromDatabase: { name: bill-tracker-db, property: password }
+      - key: SPRING_PROFILES_ACTIVE
+        value: demo
       - key: INBOUND_EMAIL_SECRET
         generateValue: true
-      - key: INBOUND_EMAIL_DOMAIN
-        sync: false
-
-databases:
-  - name: bill-tracker-db
-    plan: free
-    databaseName: billtracker

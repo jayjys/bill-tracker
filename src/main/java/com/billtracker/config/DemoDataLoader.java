@@ -41,15 +41,15 @@ import java.util.Random;
  * Seeds a demo household (two roommates in Chicago) with two years of bills whose usage
  * follows the real local weather, so the forecast and anomaly models have something
  * realistic to learn from. The latest water bill includes a simulated leak.
- * Only runs with the {@code local} profile.
+ * Runs with the {@code local} profile and with the {@code demo} profile used for the public deployment.
  */
 @Component
-@Profile("local")
+@Profile({"local", "demo"})
 @Order(0)
 public class DemoDataLoader implements ApplicationRunner {
 
-    static final String DEMO_EMAIL = "demo@example.com";
-    static final String DEMO_PASSWORD = "demo-password";
+    public static final String DEMO_EMAIL = "demo@example.com";
+    public static final String DEMO_PASSWORD = "demo-password";
     static final String ROOMMATE_EMAIL = "sam@example.com";
 
     private static final Logger log = LoggerFactory.getLogger(DemoDataLoader.class);

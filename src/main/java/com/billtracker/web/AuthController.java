@@ -1,5 +1,6 @@
 package com.billtracker.web;
 
+import com.billtracker.config.DemoDataLoader;
 import com.billtracker.household.HouseholdService;
 import com.billtracker.user.UserService;
 import jakarta.servlet.ServletException;
@@ -9,6 +10,7 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -24,14 +26,22 @@ public class AuthController {
 
     private final UserService userService;
     private final HouseholdService households;
+    private final boolean demo;
 
-    public AuthController(UserService userService, HouseholdService households) {
+    public AuthController(UserService userService, HouseholdService households,
+                          @Value("${billtracker.demo.enabled:false}") boolean demo) {
         this.userService = userService;
         this.households = households;
+        this.demo = demo;
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String login(Model model) {
+        if (demo) {
+            // Public deployment: offer a one-click sign-in to the seeded demo household.
+            model.addAttribute("demoEmail", DemoDataLoader.DEMO_EMAIL);
+            model.addAttribute("demoPassword", DemoDataLoader.DEMO_PASSWORD);
+        }
         return "login";
     }
 

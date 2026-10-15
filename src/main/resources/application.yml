@@ -73,3 +73,17 @@ spring:
 billtracker:
   inbound:
     secret: local-dev-secret
+
+---
+# Public demo (render.yaml): in-memory database seeded with the demo household; resets on every restart.
+spring:
+  config:
+    activate:
+      on-profile: demo
+  datasource:
+    url: jdbc:h2:mem:billtracker;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+billtracker:
+  demo:
+    enabled: true

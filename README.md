@@ -352,13 +352,14 @@ curl -u you@example.com:password -F file=@samples/pge-combined.pdf http://localh
 
 ## Deploying
 
-The app is a single Docker image and needs PostgreSQL.
+The app is a single Docker image.
 
-**Render:** push to GitHub, then choose **New → Blueprint** in Render. [`render.yaml`](render.yaml) creates the web
-service and database and generates the webhook secret. Render's free PostgreSQL expires after 30 days; use a paid
-plan to keep data.
+**Public demo (Render):** push to GitHub, then choose **New → Blueprint** in Render. [`render.yaml`](render.yaml)
+creates a free web service running the `demo` profile: an in-memory database seeded with the demo household, with a
+**Try the demo** button on the sign-in page. Data resets whenever the service restarts, and the free plan sleeps
+after 15 minutes idle, so the first request after a pause takes about a minute.
 
-**Elsewhere** (Fly.io, Railway, a VPS): build the `Dockerfile` and set:
+**With PostgreSQL** (Render, Fly.io, Railway, a VPS): build the `Dockerfile` and set:
 
 | Variable | Example |
 |---|---|
