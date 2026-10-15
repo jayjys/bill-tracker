@@ -87,6 +87,12 @@ public class Alert {
         this.dismissedAt = Instant.now();
     }
 
+    /** A due-date reminder whose due date has passed is no longer "due soon". */
+    public boolean isExpiredReminder(LocalDate today) {
+        return kind == AlertKind.DUE_SOON && bill != null && bill.getDueDate() != null
+                && bill.getDueDate().isBefore(today);
+    }
+
     public Long getId() {
         return id;
     }

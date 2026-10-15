@@ -107,4 +107,17 @@ class AnomalyDetectionTest {
         assertThat(AnomalyService.dueSoon(List.of(soon, later), today)).singleElement()
                 .extracting(AnomalyService.Finding::bill).isSameAs(soon);
     }
+
+    @Test
+    void dueSoonReminderExpiresOnceTheDueDatePasses() {
+        UtilityAccount gas = home.account("Peoples Gas", UtilityType.GAS);
+        Bill bill = TestBills.bill(gas, "50.00", null, LocalDate.of(2026, 9, 20), null, null);
+        bill.setDueDate(LocalDate.of(2026, 10, 11));
+        Alert reminder = new Alert(bill, AlertKind.DUE_SOON, Alert.Severity.INFO, "due", "due");
+        Alert leak = new Alert(bill, AlertKind.POSSIBLE_LEAK, Alert.Severity.WARNING, "leak", "leak");
+
+        assertThat(reminder.isExpiredReminder(LocalDate.of(2026, 10, 11))).isFalse();
+        assertThat(reminder.isExpiredReminder(LocalDate.of(2026, 10, 12))).isTrue();
+        assertThat(leak.isExpiredReminder(LocalDate.of(2026, 10, 12))).isFalse();
+    }
 }

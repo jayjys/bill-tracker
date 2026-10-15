@@ -268,7 +268,7 @@ Sample PDFs to try are in [`samples/`](samples).
 
 ## Engineering
 
-- **Tests (93):** parser and PDF extraction; MIME email reading; regression, forecast and anomaly maths on
+- **Tests (94):** parser and PDF extraction; MIME email reading; regression, forecast and anomaly maths on
   synthetic data with known answers; MockMvc tests for authentication, CSRF, household isolation, invites and
   merging, every webhook format, the JSON API and all 8 SQL insights. A Testcontainers test runs the migrations and
   the SQL on real PostgreSQL. It's skipped without Docker and runs in CI.
